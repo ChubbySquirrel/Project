@@ -82,7 +82,7 @@ def get_planetdata(which):
 #   x1     : end x
 #--------------------------------------------------------------
 
-def ode_init(stepper,planet,usesymp,years):
+def ode_init(stepper,planet,usesymp):
 
     fBVP = None # default: IVP, but see below.
     fJAC = None # default: explicit integrators (don't need Jacobian)
@@ -141,7 +141,7 @@ def ode_init(stepper,planet,usesymp,years):
     velcu[0]= -np.sum(masscu*velcu)/masscu[0]
 
     nstepyr = 100                          # number of steps per year
-    nyears  = years*int(np.ceil(np.max(yr_orb)))
+    nyears  = int(np.ceil(np.max(yr_orb)))
     x0      = 0.0                          # starting at t=0
     x1      = nyears*year/uTime            # end time in years
     nstep   = nyears*nstepyr               # thus, each year is resolved by nstepyr integration steps
@@ -275,18 +275,15 @@ def main():
                         help="planet:\n"
                              "  all       : all planets\n"
                              "  [1,...8]  : single planet\n")
-    parser.add_argument("years",type=int,default='1',help ="Number of years\n")
     parser.add_argument("--symp",type=int,default=0,
                         help="use symplectic integrator\n")
-    
 
     args    = parser.parse_args()
     stepper = args.stepper
     planet  = args.planet
     usesymp = args.symp
-    years = args.years
 
-    fINT,fORD,fRHS,fBVP,fJAC,x0,y0,x1,nstep,eps = ode_init(stepper,planet,years,usesymp)
+    fINT,fORD,fRHS,fBVP,fJAC,x0,y0,x1,nstep,eps = ode_init(stepper,planet,usesymp)
     x,y,it                                      = fINT(fRHS,fORD,fBVP,x0,y0,x1,nstep,fJAC=fJAC,eps=eps)
 
     ode_check(x,y,it)
