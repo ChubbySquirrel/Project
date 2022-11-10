@@ -67,17 +67,16 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     par         = globalvar.get_odepar()
     npar        = par.size
     gnewton     = par[0]
-    og_masses   = par[1:npar]
-    masses      = og_masses                                 # default
+    masses      = par[1:npar]
 
+    t = 0
     mlf         = 0
     for key in kwargs:                                      # mass loss equation selector
         if (key=='mlf'):
             mlf = kwargs[key]
-    if (mlf==1):
-
-
-
+        if (key=='t'):
+            t = kwargs[key]
+    if (mlf!=0): masses[0] = remining_mass(mlf, t)
 
     dydx        = np.zeros(4*nbodies)
     pHpq        = np.zeros(2*nbodies)
@@ -190,5 +189,30 @@ def keplerdirect_symp2(x,y,dx):
 
     return dydx
 
-def mlf(i, dx):
-    return
+#==============================================================
+# function abs_mass_of_sun = remining_mass(i, t)
+#
+# Calculates the remaining mass of the sun at t time into the
+# integration process.
+#
+# input:
+#   i       : the particular mass lose equation to use
+#   t       : the absolute time into the integration process
+#
+# output:
+#   mass    : the sun's remaining mass at time t based on
+#             mass lose equation i
+#--------------------------------------------------------------
+def remining_mass(i, t):
+    par         = globalvar.get_odepar()
+    og_mass     = par[1]
+    time_scale = 10**2
+    if (i==1):
+        if (t<time_scale): return og_mass*(1-t*(0.566)/(time_scale))
+        else: return og_mass*(1-0.566)
+
+    elif (i==2):
+        return og_mass*(1-t*(0.459)/(10**6))
+    elif (i==3):
+        return og_mass*(1-t*(0.424)/(10**6))
+    return og_mass
