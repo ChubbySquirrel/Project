@@ -206,7 +206,7 @@ def keplerdirect_symp2(x,y,dx):
 def remining_mass(i, t):
     par         = globalvar.get_odepar()
     og_mass     = par[1]
-    time_scale = 10**2
+    time_scale = 10**6
     if (i==1):
         if (t<time_scale): return og_mass*(1-t*(0.566)/(time_scale))
         else: return og_mass*(1-0.566)
