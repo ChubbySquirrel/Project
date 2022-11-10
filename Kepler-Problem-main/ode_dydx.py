@@ -62,12 +62,23 @@ def keplerdirect(x,y,dx):
 #   dydx    : vector of results as in y'=f(x,y)
 #--------------------------------------------------------------
 
-def keplerdirect_symp1(x,y,dx):
+def keplerdirect_symp1(x,y,dx,**kwargs):
     nbodies     = y.size//4 # per body, we have four variables
     par         = globalvar.get_odepar()
     npar        = par.size
     gnewton     = par[0]
-    masses      = par[1:npar]
+    og_masses   = par[1:npar]
+    masses      = og_masses                                 # default
+
+    mlf         = 0
+    for key in kwargs:                                      # mass loss equation selector
+        if (key=='mlf'):
+            mlf = kwargs[key]
+    if (mlf==1):
+
+
+
+
     dydx        = np.zeros(4*nbodies)
     pHpq        = np.zeros(2*nbodies)
     pHpp        = np.zeros(2*nbodies)
@@ -80,18 +91,14 @@ def keplerdirect_symp1(x,y,dx):
     qx          = y[indx]
     qy          = y[indy]
     for i in range(nbodies):
-        for j in range(0,i):
-            ddx           = qx[i]-qx[j]
-            ddy           = qy[i]-qy[j]
-            R3            = np.power(ddx*ddx+ddy*ddy,1.5)
-            pHpq[indx[i]] = pHpq[indx[i]] + masses[j]*ddx/R3
-            pHpq[indy[i]] = pHpq[indy[i]] + masses[j]*ddy/R3
-        for j in range(i+1,nbodies):
-            ddx           = qx[i]-qx[j]
-            ddy           = qy[i]-qy[j]
-            R3            = np.power(ddx*ddx+ddy*ddy,1.5)
-            pHpq[indx[i]] = pHpq[indx[i]] + masses[j]*ddx/R3
-            pHpq[indy[i]] = pHpq[indy[i]] + masses[j]*ddy/R3
+        for j in range(nbodies):
+            if (i!=j):
+                ddx           = qx[i]-qx[j]
+                ddy           = qy[i]-qy[j]
+                R3            = np.power(ddx*ddx+ddy*ddy,1.5)
+                pHpq[indx[i]] = pHpq[indx[i]] + masses[j]*ddx/R3
+                pHpq[indy[i]] = pHpq[indy[i]] + masses[j]*ddy/R3
+
     pHpq[indx] = pHpq[indx] * gnewton * masses
     pHpq[indy] = pHpq[indy] * gnewton * masses
     pHpp[indx] = (px-dx*pHpq[indx])/masses
@@ -183,3 +190,5 @@ def keplerdirect_symp2(x,y,dx):
 
     return dydx
 
+def mlf(i, dx):
+    return

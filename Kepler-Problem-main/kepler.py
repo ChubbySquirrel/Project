@@ -132,7 +132,7 @@ def ode_init(stepper,planet,usesymp):
     uTime   = year
     uVelo   = uLeng/uTime
     uAcce   = uVelo/uTime
-    uMass   = uAcce*uLeng*uLeng/gnewton
+    uMass   = uAcce*uLeng*uLeng/gnewton # ???
     masscu  = mass/uMass 
     rapcu   = r_aphel/uLeng
     velcu   = v_orb/uVelo
@@ -143,7 +143,8 @@ def ode_init(stepper,planet,usesymp):
     nstepyr = 100                          # number of steps per year
     nyears  = int(np.ceil(np.max(yr_orb)))
     x0      = 0.0                          # starting at t=0
-    x1      = nyears*year/uTime            # end time in years
+    #x1      = nyears*year/uTime            # end time in years
+    x1      = 10
     nstep   = nyears*nstepyr               # thus, each year is resolved by nstepyr integration steps
     nbodies = mass.size                    # number of objects
     y0      = np.zeros(4*nbodies)
@@ -213,9 +214,7 @@ def ode_check(x,y,it):
     E       = E + Egrav 
     E       = E/E[0]
     Lphi    = Lphi/Lphi[0]
-    for k in range(n):
-        print('k=%7i t=%13.5e E/E0=%20.12e L/L0=%20.12e Rs=%10.2e vs=%10.2e' 
-              % (k,x[k],E[k],Lphi[k],Rs[k],vs[k]))
+    #for k in range(n): print('k=%7i t=%13.5e E/E0=%20.12e L/L0=%20.12e Rs=%10.2e vs=%10.2e' % (k,x[k],E[k],Lphi[k],Rs[k],vs[k]))
     Eplot   = E-1.0
     Lplot   = Lphi-1.0
 
@@ -277,14 +276,18 @@ def main():
                              "  [1,...8]  : single planet\n")
     parser.add_argument("--symp",type=int,default=0,
                         help="use symplectic integrator\n")
+    parser.add_argument("--mlf",type=int,default=0,
+                        help="what mass lose function to use\n")
+
 
     args    = parser.parse_args()
     stepper = args.stepper
     planet  = args.planet
     usesymp = args.symp
+    mlf     = args.mlf  # mass lose equation selection
 
     fINT,fORD,fRHS,fBVP,fJAC,x0,y0,x1,nstep,eps = ode_init(stepper,planet,usesymp)
-    x,y,it                                      = fINT(fRHS,fORD,fBVP,x0,y0,x1,nstep,fJAC=fJAC,eps=eps)
+    x,y,it                                      = fINT(fRHS,fORD,fBVP,x0,y0,x1,nstep,fJAC=fJAC,eps=eps,mlf=mlf)
 
     ode_check(x,y,it)
 

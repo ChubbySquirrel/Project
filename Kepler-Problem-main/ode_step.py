@@ -23,7 +23,7 @@ import scipy.linalg as linalg
 #--------------------------------------------------------------
 
 def euler(fRHS,x0,y0,dx,**kwargs):
-    y  = y0 + dx*fRHS(x0,y0,dx)
+    y  = y0 + dx*fRHS(x0,y0,dx,**kwargs)
     return y,1
 
 #==============================================================
