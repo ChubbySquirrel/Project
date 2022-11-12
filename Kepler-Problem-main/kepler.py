@@ -123,7 +123,8 @@ def ode_init(stepper,planet,usesymp):
     if (planet != "all"):
         mass,eps,r_aphel,v_orb,yr_orb = get_planetdata(np.array([int(planet)]))
     elif (planet == "all"):
-        mass,eps,r_aphel,v_orb,yr_orb = get_planetdata(np.array([1,2,3,4,5,6,7,8]))
+        mass,eps,r_aphel,v_orb,yr_orb = get_planetdata(np.array([4,5,6,7,8]))
+        # mass,eps,r_aphel,v_orb,yr_orb = get_planetdata(np.array([1,2,3,4,5,6,7,8]))
     else:
         raise Exception('[ode_init]: invalid planet: %' % (planet))
 
@@ -140,11 +141,11 @@ def ode_init(stepper,planet,usesymp):
     rapcu[0]= -np.sum(masscu*rapcu)/masscu[0]
     velcu[0]= -np.sum(masscu*velcu)/masscu[0]
 
-    nstepyr = 50                           # number of steps per year
+    nstepyr = 1000                           # number of steps per year
     nyears  = int(np.ceil(np.max(yr_orb)))
     x0      = 0.0                          # starting at t=0
     #x1      = nyears*year/uTime            # end time in years
-    x1      = 500
+    x1      = 100000
     nstep   = nyears*nstepyr               # thus, each year is resolved by nstepyr integration steps
     nbodies = mass.size                    # number of objects
     y0      = np.zeros(4*nbodies)
@@ -227,12 +228,15 @@ def ode_check(x,y,it):
 
     #plt.figure(num=1,figsize=(8,8),dpi=100,facecolor='white')
     fig1,ax1 = plt.subplots(1,1)
-    if (1.05*xmin<-100 or 1.05*xmax>100):
-        ax1.set_xlim(-100, 100)
-    else: ax1.set_xlim(1.05*xmin,1.05*xmax)
-    if (1.05*ymin<-100 or 1.05*ymax>100):
-        ax1.set_ylim(-100,100)
-    else: ax1.set_ylim(1.05*ymin,1.05*ymax)
+
+    #if (1.05*xmin<-100 or 1.05*xmax>100): ax1.set_xlim(-100, 100)
+    #else: ax1.set_xlim(1.05*xmin,1.05*xmax)
+
+    #if (1.05*ymin<-100 or 1.05*ymax>100): ax1.set_ylim(-100,100)
+    #else: ax1.set_ylim(1.05*ymin,1.05*ymax)
+
+    ax1.set_xlim(-100, 100)
+    ax1.set_ylim(-100,100)
 
     for k in range(nbodies):
         ax1.plot(y[indx[k],:],y[indy[k],:],color=color[k],linewidth=1.0,linestyle='-')

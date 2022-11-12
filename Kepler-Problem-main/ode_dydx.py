@@ -67,7 +67,7 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     par         = globalvar.get_odepar()
     npar        = par.size
     gnewton     = par[0]
-    masses      = par[1:npar]
+    masses      = par[1:npar].copy()
 
     t = 0
     mlf         = 0
@@ -107,6 +107,8 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     dydx[indvx]= -pHpq[indx]/masses
     dydx[indvy]= -pHpq[indy]/masses
 
+    pass
+
     return dydx
 
 #==============================================================
@@ -127,12 +129,22 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
 #   dydx    : vector of results as in y'=f(x,y)
 #--------------------------------------------------------------
 
-def keplerdirect_symp2(x,y,dx):
+def keplerdirect_symp2(x,y,dx,**kwargs):
     nbodies     = y.size//4 # per body, we have four variables
     par         = globalvar.get_odepar()
     npar        = par.size
     gnewton     = par[0]
-    masses      = par[1:npar]
+    masses      = par[1:npar].copy()
+
+    t = 0
+    mlf         = 0
+    for key in kwargs:                                      # mass loss equation selector
+        if (key=='mlf'):
+            mlf = kwargs[key]
+        if (key=='t'):
+            t = kwargs[key]
+    if (mlf!=0): masses[0] = remining_mass(mlf, t)
+
     dydx        = np.zeros(4*nbodies)
     pHpq        = np.zeros(2*nbodies)
     pHpq2       = np.zeros(2*nbodies)
@@ -207,9 +219,17 @@ def remining_mass(i, t):
     par         = globalvar.get_odepar()
     og_mass     = par[1]
     time_scale = 10**6
+    #print(t)
+    #print((1-t*(0.566)/(time_scale)))
     if (i==1):
-        if (t<time_scale): return og_mass*(1-t*(0.566)/(time_scale))
-        else: return og_mass*(1-0.566)
+        if (t<time_scale):
+            new_mass = og_mass*(1-t*(0.566)/(time_scale))
+            #print(new_mass)
+            return new_mass
+        else:
+            new_mass = og_mass*(1-0.566)
+            #print(new_mass)
+            return new_mass
 
     elif (i==2):
         return og_mass*(1-t*(0.459)/(10**6))
