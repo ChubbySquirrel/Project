@@ -177,6 +177,14 @@ def ode_init(stepper,planet,usesymp):
 #--------------------------------------------------------------
 
 def ode_check(x,y,it):
+    # limit datapoints so that they are plottable
+    max_datapoint = 10**6
+    if y.shape[1]>max_datapoint:
+        factor = int(np.log10(10+y.shape[1]/max_datapoint))
+        x = x[::10**factor]
+        y = y[:, ::10**factor]
+        it = it[::10**factor]
+
     
     # for the direct Kepler problem, we check for energy and angular momentum conservation,
     # and for the center-of-mass position and velocity
