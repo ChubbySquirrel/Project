@@ -78,6 +78,12 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
             t = kwargs[key]
     if (mlf!=0): masses[0] = remining_mass(mlf, t)
 
+    indx    = 2*np.arange(nbodies)
+    indy    = 2*np.arange(nbodies)+1
+    orbital_distance = np.zeros(nbodies)
+    for k in range(nbodies):
+        orbital_distance[k] = (y[indx[k]]**2+y[indy[k]]**2)**0.5
+
     dydx        = np.zeros(4*nbodies)
     pHpq        = np.zeros(2*nbodies)
     pHpp        = np.zeros(2*nbodies)
