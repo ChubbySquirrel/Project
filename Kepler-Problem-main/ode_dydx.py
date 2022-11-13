@@ -149,22 +149,34 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
 #--------------------------------------------------------------
 def remining_mass(i, t):
     par         = globalvar.get_odepar()
-    og_mass     = par[1]
+    mass     = par[1].copy()
     time_scale = 10**6
-    #print(t)
-    #print((1-t*(0.566)/(time_scale)))
-    if (i==1):
-        if (t<time_scale):
-            new_mass = og_mass*(1-t*(0.566)/(time_scale))
-            #print(new_mass)
-            return new_mass
-        else:
-            new_mass = og_mass*(1-0.566)
-            #print(new_mass)
-            return new_mass
 
-    elif (i==2):
-        return og_mass*(1-t*(0.459)/(10**6))
-    elif (i==3):
-        return og_mass*(1-t*(0.424)/(10**6))
-    return og_mass
+    #print(t)
+    if i==1:
+        if t<time_scale:
+            mass = mass * (1 - t * 0.566 / time_scale)
+        else:
+            mass = mass * (1 - 0.566)
+    elif i==2:
+        if t<time_scale:
+            mass = mass * (1 - t * 0.459 / time_scale)
+        else:
+            mass = mass * (1 - 0.459)
+    elif i==3:
+        if t<time_scale:
+            mass = mass * (1 - t * 0.424 / time_scale)
+        else:
+            mass = mass * (1 - 0.424)
+    elif i==4:
+
+        if float(t)/6.36 < 10**9:
+            for k in range(t):
+                pass
+            mass = ((-8.14*10**-14)*(1+0.03*(t/10**9)**2)*mass)
+        elif float(t)/7.09 < 10**9:
+            mass = 2*(-8.14*10**-14)*(1+0.03*(t/10**9)**2)*mass
+        else: pass
+
+    #print(mass)
+    return mass

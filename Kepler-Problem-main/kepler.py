@@ -141,12 +141,11 @@ def ode_init(stepper,planet,usesymp):
     rapcu[0]= -np.sum(masscu*rapcu)/masscu[0]
     velcu[0]= -np.sum(masscu*velcu)/masscu[0]
 
-
-    nstepyr = 50000                          # number of steps per year
+    nstepyr = 100                          # number of steps per year
     nyears  = int(np.ceil(np.max(yr_orb)))
     x0      = 0.0                          # starting at t=0
     #x1      = nyears*year/uTime            # end time in years
-    x1      = 10**7
+    x1      = 10**2
     nstep   = nyears*nstepyr               # thus, each year is resolved by nstepyr integration steps
     nbodies = mass.size                    # number of objects
     y0      = np.zeros(4*nbodies)

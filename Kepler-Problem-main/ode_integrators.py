@@ -36,6 +36,7 @@ def ode_ivp(fRHS,fORD,fBVP,x0,y0,x1,nstep,**kwargs):
     y       = np.zeros((nvar,nstep+1))     # result array 
     y[:,0]  = y0                           # set initial condition
     dx      = x[1]-x[0]                    # step size
+    print(dx)
     it      = np.zeros(nstep+1)
     pass
     #print("[ode_ivp]: k=%5i x=%13.5e y=%13.5e %13.5e %13.5e %13.5e" % (0,x[0],y[0,0],y[1,0],y[2,0],y[3,0]))
