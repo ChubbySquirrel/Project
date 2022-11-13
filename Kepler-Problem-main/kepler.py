@@ -141,11 +141,11 @@ def ode_init(stepper,planet,usesymp):
     rapcu[0]= -np.sum(masscu*rapcu)/masscu[0]
     velcu[0]= -np.sum(masscu*velcu)/masscu[0]
 
-    nstepyr = 100                          # number of steps per year
+    nstepyr = 500                          # number of steps per year
     nyears  = int(np.ceil(np.max(yr_orb)))
     x0      = 0.0                          # starting at t=0
     #x1      = nyears*year/uTime            # end time in years
-    x1      = 10**2
+    x1      = 500
     nstep   = nyears*nstepyr               # thus, each year is resolved by nstepyr integration steps
     nbodies = mass.size                    # number of objects
     y0      = np.zeros(4*nbodies)
@@ -197,7 +197,13 @@ def ode_check(x,y,it):
     R       = np.sqrt(np.power(y[indx[0],:]-y[indx[1],:],2)+np.power(y[indy[0],:]-y[indy[1],:],2))
     Rs      = np.zeros(n) # center of mass position
     vs      = np.zeros(n) # center of mass velocity
+
+    print("Ode_check running:")
     for k in range(n):
+        if k%((int)(n/100))==0:
+            print("", end="\r")
+            print("Part 1: "+str((int)(k/n*100))+"%", end="")
+
         E[k]    = 0.5*np.sum(masses*(np.power(y[indvx,k],2)+np.power(y[indvy,k],2)))
         Lphi[k] = np.sum(masses*(y[indx,k]*y[indvy,k]-y[indy,k]*y[indvx,k]))
         Rsx     = np.sum(masses*y[indx,k])/np.sum(masses)
@@ -207,6 +213,9 @@ def ode_check(x,y,it):
         Rs[k]   = np.sqrt(Rsx*Rsx+Rsy*Rsy)
         vs[k]   = np.sqrt(vsx*vsx+vsy*vsy)
     for j in range(nbodies):
+        print("", end="\r")
+        print("Part 2: "+str(j)+" out of "+str(nbodies), end="")
+
         for i in range(j): # preventing double summation. Still O(N^2) though.
             dx    = y[indx[j],:]-y[indx[i],:]
             dy    = y[indy[j],:]-y[indy[i],:]
@@ -239,6 +248,9 @@ def ode_check(x,y,it):
     ax1.set_ylim(-100,100)
 
     for k in range(nbodies):
+        print("", end="\r")
+        print("Part 3: "+str(k)+" out of "+str(nbodies), end="")
+
         ax1.plot(y[indx[k],:],y[indy[k],:],color=color[k],linewidth=1.0,linestyle='-')
     ax1.set_aspect('equal')
     ax1.set_xlabel('x [AU]')
@@ -259,8 +271,15 @@ def ode_check(x,y,it):
     fig3,(ax31) = plt.subplots(1,1)
     ss = y.shape
     for k in range(nbodies):
+        print("", end="\r")
+        print("Orbital distance: "+str(k)+" out of "+str(nbodies), end="\n")
+
         orbital_distance = np.zeros(ss[1])
         for j in range(ss[1]):
+            if j%((int)(ss[1]/100))==0:
+                print("", end="\r")
+                print("Progress: "+str((int)(j/ss[1]*100))+"%", end="")
+
             orbital_distance[j] = (y[indx[k],j]**2+y[indy[k],j]**2)**0.5
         ax31.plot(x, orbital_distance, linestyle='-',color=color[k],linewidth=1.0)
 
