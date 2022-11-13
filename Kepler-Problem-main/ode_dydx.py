@@ -79,7 +79,7 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     if (mlf!=0): masses[0] = remining_mass(mlf, t)
     #=========================================================================
     
-    
+    delM = remining_mass(mlf,t)-remining_mass(mlf, t-1)
 
     indx    = 2*np.arange(nbodies)
     indy    = 2*np.arange(nbodies)+1
@@ -100,14 +100,59 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     qy          = y[indy]
     
     
-    #=========================================================================
+    '''#=========================================================================
     #change in momentum from solar mass:
-    r0 = 6.957e8 #radius of sun
-    vesc = 618e3 #escape velocity
+    r0 = 6.957e8 #radius of sun (SI)
+    vesc = 618e3 #escape velocity (SI)
+    
+    #for SI unit conversions--------------------------------------------------
+    AU      = 1.495979e11               # AU in meters
+    year    = 3.6e3*3.65e2*2.4e1
+    gnewton1 = 6.67408e-11
+    uLeng   = AU
+    uTime   = year
+    uVelo   = uLeng/uTime
+    uAcce   = uVelo/uTime
+    uMass   = uAcce*uLeng*uLeng/gnewton1
     
     
+    #-------------------------------------------------------------------------
+    #only considering planets past Mars (not in), first space reserved for sun (momentum not affected):
+    planet_radius = np.array([0,7.1492e7,6.0268e7,2.4622e7,2.5362e7])
+    
+    #-------------------------------------------------------------------------
+    #SI conversions:
+    massesSI = masses*uMass
+    vxSI = y[indvx]*(1/uVelo)
+    vySI = y[indvy]*(1/uVelo)
+    #-------------------------------------------------------------------------
+    #Particle collisions:
+    delM *= uMass
+    #mass concentration by collision time:
+    Mcol = np.zeros((nbodies))
+    for i in range(1,nbodies):
+        Mcol[i] = delM/(4*np.pi*orbital_distance[i]**2)*np.pi*planet_radius[i]**2
+
+    #mass movement:
+    vf = np.zeros((nbodies))
+    for i in range (1,nbodies):
+        vf[i] = np.sqrt(vesc**2 + 2*gnewton1*massesSI[0]*(1/(r0))- 1/(orbital_distance[i]))
+    
+    #------------------------------------------------------------------------
+    #converting back to adjusted units:
+    Mcol *= 1/uMass
+    vf *= 1/uVelo
     
     
+    delp = Mcol*vf
+    delpx = delp
+    delpy = delp
+    for i in range(1,nbodies):
+        delpx[i] *= y[indx[i]]/(orbital_distance[i])
+        delpy[i] *=  y[indy[i]]/(orbital_distance[i])
+    
+    px += delpx
+    py += delpy'''
     
     #=========================================================================
     for i in range(nbodies):
@@ -149,34 +194,17 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
 #--------------------------------------------------------------
 def remining_mass(i, t):
     par         = globalvar.get_odepar()
-    mass     = par[1].copy()
+    og_mass     = par[1]
     time_scale = 10**6
-
-    #print(t)
-    if i==1:
-        if t<time_scale:
-            mass = mass * (1 - t * 0.566 / time_scale)
+    if (i==1):
+        if (t<time_scale):
+            new_mass = og_mass*(1-t*(0.566)/(time_scale))
+            return new_mass
         else:
-            mass = mass * (1 - 0.566)
-    elif i==2:
-        if t<time_scale:
-            mass = mass * (1 - t * 0.459 / time_scale)
-        else:
-            mass = mass * (1 - 0.459)
-    elif i==3:
-        if t<time_scale:
-            mass = mass * (1 - t * 0.424 / time_scale)
-        else:
-            mass = mass * (1 - 0.424)
-    elif i==4:
-
-        if float(t)/6.36 < 10**9:
-            for k in range(t):
-                pass
-            mass = ((-8.14*10**-14)*(1+0.03*(t/10**9)**2)*mass)
-        elif float(t)/7.09 < 10**9:
-            mass = 2*(-8.14*10**-14)*(1+0.03*(t/10**9)**2)*mass
-        else: pass
-
-    #print(mass)
-    return mass
+            new_mass = og_mass*(1-0.566)
+            return new_mass
+    elif (i==2):
+        return og_mass*(1-t*(0.459)/(10**6))
+    elif (i==3):
+        return og_mass*(1-t*(0.424)/(10**6))
+    return og_mass
