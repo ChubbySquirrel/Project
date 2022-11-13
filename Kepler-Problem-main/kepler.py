@@ -124,7 +124,6 @@ def ode_init(stepper,planet,usesymp):
         mass,eps,r_aphel,v_orb,yr_orb = get_planetdata(np.array([int(planet)]))
     elif (planet == "all"):
         mass,eps,r_aphel,v_orb,yr_orb = get_planetdata(np.array([5,6,7,8]))
-        # mass,eps,r_aphel,v_orb,yr_orb = get_planetdata(np.array([1,2,3,4,5,6,7,8]))
     else:
         raise Exception('[ode_init]: invalid planet: %' % (planet))
 
@@ -142,11 +141,11 @@ def ode_init(stepper,planet,usesymp):
     velcu[0]= -np.sum(masscu*velcu)/masscu[0]
 
 
-    nstepyr = 50000                          # number of steps per year
+    nstepyr = 1                          # number of steps per year
     nyears  = int(np.ceil(np.max(yr_orb)))
     x0      = 0.0                          # starting at t=0
     #x1      = nyears*year/uTime            # end time in years
-    x1      = 10**7
+    x1      = 10
     nstep   = nyears*nstepyr               # thus, each year is resolved by nstepyr integration steps
     nbodies = mass.size                    # number of objects
     y0      = np.zeros(4*nbodies)
