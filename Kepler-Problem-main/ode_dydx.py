@@ -100,7 +100,28 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     qy          = y[indy]
     
     
-    '''#=========================================================================
+
+    
+    #=========================================================================
+    for i in range(nbodies):
+        for j in range(nbodies):
+            if (i!=j):
+                ddx           = qx[i]-qx[j]
+                ddy           = qy[i]-qy[j]
+                R3            = np.power(ddx*ddx+ddy*ddy,1.5)
+                pHpq[indx[i]] = pHpq[indx[i]] + masses[j]*ddx/R3
+                pHpq[indy[i]] = pHpq[indy[i]] + masses[j]*ddy/R3
+
+    pHpq[indx] = pHpq[indx] * gnewton * masses
+    pHpq[indy] = pHpq[indy] * gnewton * masses
+    pHpp[indx] = (px-dx*pHpq[indx])/masses
+    pHpp[indy] = (py-dx*pHpq[indy])/masses
+    dydx[indx] = pHpp[indx]
+    dydx[indy] = pHpp[indy]
+    dydx[indvx]= -pHpq[indx]/masses
+    dydx[indvy]= -pHpq[indy]/masses
+
+    #=========================================================================
     #change in momentum from solar mass:
     r0 = 6.957e8 #radius of sun (SI)
     vesc = 618e3 #escape velocity (SI)
@@ -123,56 +144,34 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     #-------------------------------------------------------------------------
     #SI conversions:
     massesSI = masses*uMass
-    vxSI = y[indvx]*(1/uVelo)
-    vySI = y[indvy]*(1/uVelo)
+    vxSI = y[indvx]*(uVelo)
+    print(vxSI)
+    vySI = y[indvy]*(uVelo)
     #-------------------------------------------------------------------------
     #Particle collisions:
-    delM *= uMass
+    delM *= -uMass
+    
     #mass concentration by collision time:
     Mcol = np.zeros((nbodies))
     for i in range(1,nbodies):
-        Mcol[i] = delM/(4*np.pi*orbital_distance[i]**2)*np.pi*planet_radius[i]**2
-
+        Mcol[i] = delM/(4*np.pi*(orbital_distance[i])**2)*np.pi*(planet_radius[i]/AU)**2
     #mass movement:
     vf = np.zeros((nbodies))
     for i in range (1,nbodies):
-        vf[i] = np.sqrt(vesc**2 + 2*gnewton1*massesSI[0]*(1/(r0))- 1/(orbital_distance[i]))
-    
+        vf[i] = np.sqrt(2*gnewton1*massesSI[0]*(1/(orbital_distance[i]*AU)-1/r0) + vesc**2)
     #------------------------------------------------------------------------
     #converting back to adjusted units:
     Mcol *= 1/uMass
     vf *= 1/uVelo
-    
-    
+    print(vf)
     delp = Mcol*vf
     delpx = delp
     delpy = delp
     for i in range(1,nbodies):
         delpx[i] *= y[indx[i]]/(orbital_distance[i])
-        delpy[i] *=  y[indy[i]]/(orbital_distance[i])
-    
+        delpy[i] *= y[indy[i]]/(orbital_distance[i])
     px += delpx
-    py += delpy'''
-    
-    #=========================================================================
-    for i in range(nbodies):
-        for j in range(nbodies):
-            if (i!=j):
-                ddx           = qx[i]-qx[j]
-                ddy           = qy[i]-qy[j]
-                R3            = np.power(ddx*ddx+ddy*ddy,1.5)
-                pHpq[indx[i]] = pHpq[indx[i]] + masses[j]*ddx/R3
-                pHpq[indy[i]] = pHpq[indy[i]] + masses[j]*ddy/R3
-
-    pHpq[indx] = pHpq[indx] * gnewton * masses
-    pHpq[indy] = pHpq[indy] * gnewton * masses
-    pHpp[indx] = (px-dx*pHpq[indx])/masses
-    pHpp[indy] = (py-dx*pHpq[indy])/masses
-    dydx[indx] = pHpp[indx]
-    dydx[indy] = pHpp[indy]
-    dydx[indvx]= -pHpq[indx]/masses
-    dydx[indvy]= -pHpq[indy]/masses
-
+    py += delpy
     pass
 
     return dydx
