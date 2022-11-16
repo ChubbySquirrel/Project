@@ -161,19 +161,11 @@ def ode_init(stepper,planet,usesymp):
     rapcu[0]= -np.sum(masscu*rapcu)/masscu[0]
     velcu[0]= -np.sum(masscu*velcu)/masscu[0]
 
-<<<<<<< HEAD
     nstepyr = 10**4                          # number of steps per year
     nyears  = int(np.ceil(np.max(yr_orb)))
     x0      = 0.0                          # starting at t=0
     #x1      = nyears*year/uTime            # end time in years
     x1      = 10**5
-=======
-    nstepyr = 10                          # number of steps per year
-    nyears  = int(np.ceil(np.max(yr_orb)))
-    x0      = 0.0                          # starting at t=0
-    #x1      = nyears*year/uTime            # end time in years
-    x1      = 5000
->>>>>>> 0b80b8162b040b7ff55719ff8d961d4058ff66cb
     nstep   = nyears*nstepyr               # thus, each year is resolved by nstepyr integration steps
     nbodies = mass.size                    # number of objects
     y0      = np.zeros(4*nbodies)
@@ -380,8 +372,8 @@ def main():
     end_y = y[:, -1]
     del y
 
-    x, y, it = fINT(fRHS,fORD,fBVP,x0,end_y,x1,nstep,fJAC=fJAC,eps=eps,mlf=mlf,stage=1)
-    ode_check(x, y, it)
+    #x, y, it = fINT(fRHS,fORD,fBVP,x0,end_y,x1,nstep,fJAC=fJAC,eps=eps,mlf=mlf,stage=1)
+    #ode_check(x, y, it)
 
 #==============================================================
 
