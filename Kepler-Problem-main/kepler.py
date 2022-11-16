@@ -20,7 +20,6 @@ import ode_step as step          # the stepper functions
 import ode_dydx as dydx          # contains the RHS functions for selected problems.
 import ode_bvp  as bvp           # contains the boundary value functions for selected problems.
 import ode_jac  as jac           # contains definitions of Jacobians for various problems
-import gc
 
 #==============================================================
 # functions
@@ -41,7 +40,7 @@ import gc
 
 def get_planetdata(which):
     nplanets             = len(which)
-    mass                 = np.array([1.989e30,3.3011e23,4.8675e24,5.972e24,6.41e23,1.89819e27,5.6834e26,8.6813e25,1.02413e26])
+    mass                 = np.array([1.989e30,3.3011e23,4.8675e24,5.972e24,6.41e23,1.89819e27,5.6834e26,8.6813e25,1.02413e26]) 
     eps                  = np.array([0.0,0.205,0.0067,0.0167,0.0934,0.0489,0.0565,0.0457,0.0113])
     rap                  = np.array([0.0,6.9816e10,1.0894e11,1.52139e11,2.49232432e11,8.1662e11,1.5145e12,3.00362e12,4.54567e12])
     vorb                 = np.array([0.0,3.87e4,3.479e4,2.929e4,2.197e4,1.244e4,9.09e3,6.49e3,5.37e3])
@@ -61,12 +60,12 @@ def get_planetdata(which):
 
 def get_interdata(which):
     # halley, moon
-    nplanets             = 1
+    nplanets             = len(which)
     mass                 = np.array([2.2e14, 7.35e22])
     eps                  = np.array([0, 0])
-    rap                  = np.array([5e13, 5e13])
-    vorb                 = np.array([1e3, 1e3])
-    yrorb                = np.array([1.6373e2, 1.6373e2])
+    rap                  = np.array([2e13, 2e13])
+    vorb                 = np.array([1e-5, 1e-5])
+    yrorb                = np.array([0, 0])
     rmass                = np.zeros(nplanets)
     reps                 = np.zeros(nplanets)
     rrap                 = np.zeros(nplanets)
@@ -155,18 +154,18 @@ def ode_init(stepper,planet,usesymp):
     uVelo   = uLeng/uTime
     uAcce   = uVelo/uTime
     uMass   = uAcce*uLeng*uLeng/gnewton # ???
-    masscu  = mass/uMass
+    masscu  = mass/uMass 
     rapcu   = r_aphel/uLeng
     velcu   = v_orb/uVelo
     # Set initial conditions. All objects are aligned along x-axis, with planets to positive x, sun to negative x.
     rapcu[0]= -np.sum(masscu*rapcu)/masscu[0]
     velcu[0]= -np.sum(masscu*velcu)/masscu[0]
 
-    nstepyr = stpyr                          # number of steps per year
+    nstepyr = 10**4                          # number of steps per year
     nyears  = int(np.ceil(np.max(yr_orb)))
     x0      = 0.0                          # starting at t=0
     #x1      = nyears*year/uTime            # end time in years
-    x1      = total_years
+    x1      = 10**5
     nstep   = nyears*nstepyr               # thus, each year is resolved by nstepyr integration steps
     nbodies = mass.size                    # number of objects
     y0      = np.zeros(4*nbodies)
@@ -206,7 +205,7 @@ def ode_check(x,y,it):
         y = y[:, ::int(np.ceil(factor))]
         it = it[::int(np.ceil(factor))]
 
-
+    
     # for the direct Kepler problem, we check for energy and angular momentum conservation,
     # and for the center-of-mass position and velocity
     color   = ['black','green','cyan','blue','red','black','black','black','black']
@@ -249,8 +248,8 @@ def ode_check(x,y,it):
             dx    = y[indx[j],:]-y[indx[i],:]
             dy    = y[indy[j],:]-y[indy[i],:]
             Rt    = np.sqrt(dx*dx+dy*dy)
-            Egrav = Egrav - gnewton*masses[i]*masses[j]/Rt
-    E       = E + Egrav
+            Egrav = Egrav - gnewton*masses[i]*masses[j]/Rt 
+    E       = E + Egrav 
     E       = E/E[0]
     Lphi    = Lphi/Lphi[0]
     #for k in range(n): print('k=%7i t=%13.5e E/E0=%20.12e L/L0=%20.12e Rs=%10.2e vs=%10.2e' % (k,x[k],E[k],Lphi[k],Rs[k],vs[k]))
@@ -299,7 +298,6 @@ def ode_check(x,y,it):
     # print the distance over time
     fig3,(ax31) = plt.subplots(1,1)
     ss = y.shape
-    up = 0.0
     for k in range(nbodies):
         print("", end="\r")
         print("Orbital distance: "+str(k)+" out of "+str(nbodies), end="\n")
@@ -312,9 +310,6 @@ def ode_check(x,y,it):
 
             orbital_distance[j] = (y[indx[k],j]**2+y[indy[k],j]**2)**0.5
         ax31.plot(x, orbital_distance, linestyle='-',color=color[k],linewidth=1.0)
-        up = np.max([up, np.max(orbital_distance)])
-
-    ax31.set_ylim(-1.0, np.min([300.0, up])+3)
 
     plt.tight_layout()
     plt.show()
@@ -324,58 +319,14 @@ def ode_check(x,y,it):
 
 # Init the inter-looper, with index being the selector
 def inter_init(index):
-    fORD = step.euler
-    fRHS    = dydx.keplerdirect_symp1
-    fBVP = None
-    fJAC = None
 
-    print('\n[Post inter-looper]: initializing inter-looper problem')
-    # We set the initial positions, assuming orbit starts at aphel.
-    # Units are different here. We set G=1, L=1AU, t=1yr. This results
-    # a set scale for the mass, as below.
-    AU      = 1.495979e11               # AU in meters
-    year    = 3.6e3*3.65e2*2.4e1        # year in seconds
-    mass,eps,r_aphel,v_orb,yr_orb = get_interdata(index)
 
-    gnewton = 6.67408e-11
-    uLeng   = AU
-    uTime   = year
-    uVelo   = uLeng/uTime
-    uAcce   = uVelo/uTime
-    uMass   = uAcce*uLeng*uLeng/gnewton # ???
-    masscu  = mass/uMass
-    rapcu   = r_aphel/uLeng
-    velcu   = v_orb/uVelo
-    # Set initial conditions. All objects are aligned along x-axis, with planets to positive x, sun to negative x.
-    rapcu[0]= -np.sum(masscu*rapcu)/masscu[0]
-    velcu[0]= -np.sum(masscu*velcu)/masscu[0]
 
-    nstepyr = 10**2                          # number of steps per year
-    nyears  = int(np.ceil(np.max(yr_orb)))
-    x0      = 0.0                          # starting at t=0
-    #x1      = nyears*year/uTime            # end time in years
-    x1      = 10**4
-    nstep   = nyears*nstepyr               # thus, each year is resolved by nstepyr integration steps
-    nbodies = mass.size                    # number of objects
-    y0      = np.zeros(4*nbodies)
-    par     = np.zeros(nbodies)          # number of parameters
-    for k in range(nbodies):               # fill initial condition array and parameter array
-        y0[2*k]             = rapcu[k]
-        y0[2*k+1]           = 0.0
-        y0[2*(nbodies+k)]   = 0.0
-        y0[2*(nbodies+k)+1] = velcu[k]
-        par[k]            = masscu[k]
-    fINT    = odeint.ode_ivp
-    eps     = 1e-8
+    return
 
-    globalvar.set_inter(par)
 
-    oldpar = globalvar.get_odepar()
-    oldpar[1] = dydx.remining_mass(mlf, total_years)
-    oldpar = np.append(oldpar, par)
 
-    globalvar.set_odepar(oldpar)
-    return fINT,fORD,fRHS,fBVP,fJAC,x0,y0,x1,nstep,eps
+
 
 
 #==============================================================
@@ -410,7 +361,6 @@ def main():
     stepper = args.stepper
     planet  = args.planet
     usesymp = args.symp
-    global mlf
     mlf     = args.mlf  # mass lose equation selection
 
     fINT,fORD,fRHS,fBVP,fJAC,x0,y0,x1,nstep,eps = ode_init(stepper,planet,usesymp)
@@ -421,30 +371,13 @@ def main():
     # inter-looper after the process
     end_y = y[:, -1]
     del y
-    gc.collect()
-    y = end_y
-    fINTI,fORDI,fRHSI,fBVPI,fJACI,x0I,y0I,x1I,nstepI,epsI = inter_init(interlooper)
-    neY = np.zeros(int(y.size+y0I.size))
-    for k in range(int(y.size/2+1)):
-        if k==int(y.size/2):
-            neY[k] = y0I[0]
-            neY[k+1] = y0I[1]
-            neY[int(neY.size/2+k)] = y0I[2]
-            neY[int(neY.size/2+k+1)] = y0I[3]
-            break
-        neY[k] = y[k]
-        neY[int(neY.size/2+k)] = y[int(y.size/2+k)]
 
-
-    xI, yI, itI = fINT(fRHS,fORD,fBVP,x0I,neY,x1I,nstepI,fJAC=fJACI,eps=epsI,mlf=mlf,stage=1)
-
-    ode_check(xI, yI, itI)
+    #x, y, it = fINT(fRHS,fORD,fBVP,x0,end_y,x1,nstep,fJAC=fJAC,eps=eps,mlf=mlf,stage=1)
+    #ode_check(x, y, it)
 
 #==============================================================
 
-stpyr = 10**2
-total_years = 10**3
-interlooper = 0
+
 main()
 
 
