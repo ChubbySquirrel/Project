@@ -118,7 +118,7 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     
     
     #-------------------------------------------------------------------------
-    #only considering planets past Mars (not in), first space reserved for sun (momentum not affected):
+    #only considering planets past Mars (not in), first index reserved for sun (change in momentum is negligable):
     planet_radius = np.array([0,7.1492e7,6.0268e7,2.4622e7,2.5362e7])
     
     #-------------------------------------------------------------------------
