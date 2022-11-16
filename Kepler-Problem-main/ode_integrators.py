@@ -56,7 +56,7 @@ def ode_ivp(fRHS,fORD,fBVP,x0,y0,x1,nstep,**kwargs):
                 print("", end="\r")
                 print("Integrating: "+str((int)(k/nstep*100))+"%", end="")
             t = k*dx
-            y[:,k],it[k] = fORD(fRHS,x[k-1],y[:,k-1],dx,t=t,**kwargs)
+            y[:,k],it[k] = fORD(fRHS,x[k-1],y[:,k-1],dx,t=t,inter=stage,**kwargs)
             #print("[ode_ivp]: k=%5i x=%13.5e y=%13.5e %13.5e %13.5e %13.5e R=%13.5e" % (k,x[k],y[0,k],y[1,k],y[2,k],y[3,k],np.sqrt(y[0,k]*y[0,k]+y[1,k]*y[1,k])))
         pass
         print("")
@@ -81,7 +81,7 @@ def ode_ivp(fRHS,fORD,fBVP,x0,y0,x1,nstep,**kwargs):
                 print("", end="\r")
                 print("Integrating: "+str((int)(k/nstep*100))+"%", end="")
             t = k*dx
-            y[:,k],it[k] = fORD(fRHS,x[k-1],y[:,k-1],dx,t=t,**kwargs)
+            y[:,k],it[k] = fORD(fRHS,x[k-1],y[:,k-1],dx,t=t,inter=stage,**kwargs)
             #print("[ode_ivp]: k=%5i x=%13.5e y=%13.5e %13.5e %13.5e %13.5e R=%13.5e" % (k,x[k],y[0,k],y[1,k],y[2,k],y[3,k],np.sqrt(y[0,k]*y[0,k]+y[1,k]*y[1,k])))
         pass
         print("")

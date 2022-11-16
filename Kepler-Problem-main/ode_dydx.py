@@ -73,11 +73,14 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     #=========================================================================
     t = 0
     mlf         = 0
+    stage = 0
     for key in kwargs:          # mass loss equation selector
         if (key=='mlf'):
             mlf = kwargs[key]
         if (key=='t'):
             t = kwargs[key]
+        if (key=='inter'):
+            stage = kwargs[key]
     if (mlf!=0): masses[0] = remining_mass(mlf, t)
     #=========================================================================
     
@@ -120,6 +123,9 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     #-------------------------------------------------------------------------
     #only considering planets past Mars (not in), first space reserved for sun (momentum not affected):
     planet_radius = np.array([0,7.1492e7,6.0268e7,2.4622e7,2.5362e7])
+    if (stage==1):
+        inter_radius = globalvar.get_inter()
+        planet_radius = np.append(planet_radius, inter_radius)
     
     #-------------------------------------------------------------------------
     #SI conversions:
