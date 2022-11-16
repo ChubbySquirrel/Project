@@ -58,6 +58,26 @@ def get_planetdata(which):
     ryrorb[1:nplanets+1] = yrorb[which]
     return rmass,reps,rrap,rvorb,ryrorb
 
+def get_interdata(which):
+    # halley, moon
+    nplanets             = len(which)
+    mass                 = np.array([2.2e14, 7.35e22])
+    eps                  = np.array([0, 0])
+    rap                  = np.array([2e13, 2e13])
+    vorb                 = np.array([1e-5, 1e-5])
+    yrorb                = np.array([0, 0])
+    rmass                = np.zeros(nplanets)
+    reps                 = np.zeros(nplanets)
+    rrap                 = np.zeros(nplanets)
+    rvorb                = np.zeros(nplanets)
+    ryrorb               = np.zeros(nplanets)
+    rmass [0:nplanets] = mass [which]
+    reps  [0:nplanets] = eps  [which]
+    rrap  [0:nplanets] = rap  [which]
+    rvorb [0:nplanets] = vorb [which]
+    ryrorb[0:nplanets] = yrorb[which]
+    return rmass,reps,rrap,rvorb,ryrorb
+
 #==============================================================
 # function fRHS,x0,y0,x1 = ode_init(iprob,stepper)
 #
@@ -141,11 +161,11 @@ def ode_init(stepper,planet,usesymp):
     rapcu[0]= -np.sum(masscu*rapcu)/masscu[0]
     velcu[0]= -np.sum(masscu*velcu)/masscu[0]
 
-    nstepyr = 500                          # number of steps per year
+    nstepyr = 10                          # number of steps per year
     nyears  = int(np.ceil(np.max(yr_orb)))
     x0      = 0.0                          # starting at t=0
     #x1      = nyears*year/uTime            # end time in years
-    x1      = 500
+    x1      = 5000
     nstep   = nyears*nstepyr               # thus, each year is resolved by nstepyr integration steps
     nbodies = mass.size                    # number of objects
     y0      = np.zeros(4*nbodies)
@@ -178,12 +198,12 @@ def ode_init(stepper,planet,usesymp):
 
 def ode_check(x,y,it):
     # limit datapoints so that they are plottable
-    max_datapoint = 10**6
+    max_datapoint = 10**5
     if y.shape[1]>max_datapoint:
-        factor = int(np.log10(10+y.shape[1]/max_datapoint))
-        x = x[::10**factor]
-        y = y[:, ::10**factor]
-        it = it[::10**factor]
+        factor = y.shape[1]/max_datapoint
+        x = x[::int(np.ceil(factor))]
+        y = y[:, ::int(np.ceil(factor))]
+        it = it[::int(np.ceil(factor))]
 
     
     # for the direct Kepler problem, we check for energy and angular momentum conservation,
@@ -296,6 +316,19 @@ def ode_check(x,y,it):
 
 
 #==============================================================
+
+# Init the inter-looper, with index being the selector
+def inter_init(index):
+
+
+
+    return
+
+
+
+
+
+
 #==============================================================
 # main
 # 
@@ -331,11 +364,19 @@ def main():
     mlf     = args.mlf  # mass lose equation selection
 
     fINT,fORD,fRHS,fBVP,fJAC,x0,y0,x1,nstep,eps = ode_init(stepper,planet,usesymp)
-    x,y,it                                      = fINT(fRHS,fORD,fBVP,x0,y0,x1,nstep,fJAC=fJAC,eps=eps,mlf=mlf)
+    x,y,it                                      = fINT(fRHS,fORD,fBVP,x0,y0,x1,nstep,fJAC=fJAC,eps=eps,mlf=mlf,stage=0)
 
     ode_check(x,y,it)
 
+    # inter-looper after the process
+    end_y = y[:, -1]
+    del y
+
+    x, y, it = fINT(fRHS,fORD,fBVP,x0,end_y,x1,nstep,fJAC=fJAC,eps=eps,mlf=mlf,stage=1)
+    ode_check(x, y, it)
+
 #==============================================================
+
 
 main()
 
