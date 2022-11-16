@@ -437,7 +437,6 @@ def main():
 
 
     xI, yI, itI = fINT(fRHS,fORD,fBVP,x0I,neY,x1I,nstepI,fJAC=fJACI,eps=epsI,mlf=mlf,stage=1)
-    pass
     ode_check(xI, yI, itI)
 
 #==============================================================
