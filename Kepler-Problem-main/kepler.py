@@ -352,7 +352,7 @@ def inter_init(index):
     rapcu[0]= -np.sum(masscu*rapcu)/masscu[0]
     velcu[0]= -np.sum(masscu*velcu)/masscu[0]
 
-    nstepyr = 10**2                          # number of steps per year
+    nstepyr = 10**3                          # number of steps per year
     nyears  = int(np.ceil(np.max(yr_orb)))
     x0      = 0.0                          # starting at t=0
     #x1      = nyears*year/uTime            # end time in years
@@ -441,7 +441,7 @@ def main():
 
 #==============================================================
 
-stpyr = 10**2
+stpyr = 10**3
 total_years = 10**3
 interlooper = 0
 main()

@@ -134,24 +134,41 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     #Particle collisions:
     delM *= -uMass
     
-    #mass concentration by collision time:
+    #mass of particles concentration by collision time:
     Mcol = np.zeros((nbodies))
     for i in range(1,nbodies):
         Mcol[i] = delM/(4*np.pi*(AU*orbital_distance[i])**2)*np.pi*(planet_radius[i])**2
     #mass movement:
+        
+    #radial velocity of particles from solar wind
     vf = np.zeros((nbodies))
+    vfdragx = np.zeros((nbodies))
+    vfdragy = np.zeros((nbodies))
+    vtotalx = np.zeros((nbodies))
+    vtotaly = np.zeros((nbodies))
     for i in range (1,nbodies):
         vf[i] = np.sqrt(2*gnewton1*massesSI[0]*(1/(orbital_distance[i]*AU)-1/r0) + vesc**2)
+        
+    #drag velocity of particles from solar wind
+    for i in range(1,nbodies):
+        vfdragx[i] = -y[indvx[i]] #drag acts in opposite direction (in planet's reference frame)
+        vfdragy[i] = -y[indvy[i]]
     #------------------------------------------------------------------------
-    #converting back to adjusted units:
+    #converting back to Heitsch units (HU):
     Mcol *= 1/uMass
     vf *= 1/uVelo
-    delp = Mcol*vf
-    delpx = delp
-    delpy = delp
+    
+    vfx = np.zeros((nbodies))
+    vfy = np.zeros((nbodies))
     for i in range(1,nbodies):
-        delpx[i] *= y[indx[i]]/(orbital_distance[i])
-        delpy[i] *= y[indy[i]]/(orbital_distance[i])
+        vfx[i] = vf[i]*y[indx[i]]/(orbital_distance[i])
+        vfy[i] = vf[i]*y[indy[i]]/(orbital_distance[i])
+        vtotalx[i] = vfx[i] + vfdragx[i]
+        vtotaly[i] = vfy[i] + vfdragy[i]
+    
+    #Calculating total change in momentum from drag and radial push:
+    delpx = Mcol*vtotalx
+    delpy = Mcol*vtotaly
     px += delpx
     py += delpy
     #=========================================================================
@@ -172,9 +189,6 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     dydx[indy] = pHpp[indy]
     dydx[indvx]= -pHpq[indx]/masses
     dydx[indvy]= -pHpq[indy]/masses
-
-   
-    pass
 
     return dydx
 
