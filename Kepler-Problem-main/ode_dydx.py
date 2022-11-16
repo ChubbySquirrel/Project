@@ -1,6 +1,8 @@
 import numpy as np
 import globalvar
 
+sun_current_mass = 0
+
 #==============================================================
 # function dydx = keplerdirect(x,y,dx)
 #
@@ -185,6 +187,9 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
 #
 # input:
 #   i       : the particular mass lose equation to use
+#               1-3: linear portion with respect to M_sol0
+#               4: the other equation that
+#
 #   t       : the absolute time into the integration process
 #
 # output:
@@ -194,7 +199,9 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
 def remining_mass(i, t):
     par         = globalvar.get_odepar()
     og_mass     = par[1]
-    time_scale = 10**6
+    if (i<4): time_scale = 10**4
+    else: time_scale = 6.36*10**9
+
     if (i==1):
         if (t<time_scale):
             new_mass = og_mass*(1-t*(0.566)/(time_scale))
@@ -203,7 +210,22 @@ def remining_mass(i, t):
             new_mass = og_mass*(1-0.566)
             return new_mass
     elif (i==2):
-        return og_mass*(1-t*(0.459)/(10**6))
+        if (t<time_scale):
+            new_mass = og_mass*(1-t*(0.459)/(time_scale))
+            return new_mass
+        else:
+            new_mass = og_mass*(1-0.459)
+            return new_mass
     elif (i==3):
-        return og_mass*(1-t*(0.424)/(10**6))
+        if (t<time_scale):
+            new_mass = og_mass*(1-t*(0.424)/(time_scale))
+            return new_mass
+        else:
+            new_mass = og_mass*(1-0.424)
+            return new_mass
+    elif (i==4):
+        pass
+        #new_mass =
+        #return new_mass
+
     return og_mass
