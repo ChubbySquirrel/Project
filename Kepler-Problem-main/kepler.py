@@ -67,6 +67,7 @@ def get_interdata(which):
     rap                  = np.array([5e13, 5e13])
     vorb                 = np.array([1e3, 1e3])
     yrorb                = np.array([1.6373e2, 1.6373e2])
+    radius               = np.array([5.5e3, 1.7347e3])
     rmass                = np.zeros(nplanets)
     reps                 = np.zeros(nplanets)
     rrap                 = np.zeros(nplanets)
@@ -77,6 +78,7 @@ def get_interdata(which):
     rrap  [0:nplanets] = rap  [which]
     rvorb [0:nplanets] = vorb [which]
     ryrorb[0:nplanets] = yrorb[which]
+    globalvar.set_inter(radius[which])
     return rmass,reps,rrap,rvorb,ryrorb
 
 #==============================================================
@@ -367,8 +369,6 @@ def inter_init(index):
         par[k]            = masscu[k]
     fINT    = odeint.ode_ivp
     eps     = 1e-8
-
-    globalvar.set_inter(par)
 
     oldpar = globalvar.get_odepar()
     oldpar[1] = dydx.remining_mass(mlf, total_years)
