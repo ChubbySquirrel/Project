@@ -74,6 +74,7 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     t = 0
     mlf         = 0
     stage = 0
+    mdrag = 'lit'
     for key in kwargs:          # mass loss equation selector
         if (key=='mlf'):
             mlf = kwargs[key]
@@ -81,6 +82,10 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
             t = kwargs[key]
         if (key=='inter'):
             stage = kwargs[key]
+        if (key == 'mdrag'):
+            mdrag = kwargs[key]
+
+
     if (mlf!=0): masses[0] = remining_mass(mlf, t)
     #=========================================================================
     
@@ -133,42 +138,69 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     #-------------------------------------------------------------------------
     #Particle collisions:
     delM *= -uMass
-    
-    #mass of particles concentration by collision time:
-    Mcol = np.zeros((nbodies))
-    for i in range(1,nbodies):
-        Mcol[i] = delM/(4*np.pi*(AU*orbital_distance[i])**2)*np.pi*(planet_radius[i])**2
-    #mass movement:
+
+
+
+    if mdrag == 'og': 
+
+        #mass of particles concentration by collision time:
+        Mcol = np.zeros((nbodies))
+        for i in range(1,nbodies):
+            Mcol[i] = delM/(4*np.pi*(AU*orbital_distance[i])**2)*np.pi*(planet_radius[i])**2
+        #mass movement:
+            
+        #radial velocity of particles from solar wind
+        vf = np.zeros((nbodies))
+        vfdragx = np.zeros((nbodies))
+        vfdragy = np.zeros((nbodies))
+        vtotalx = np.zeros((nbodies))
+        vtotaly = np.zeros((nbodies))
+        for i in range (1,nbodies):
+            vf[i] = np.sqrt(2*gnewton1*massesSI[0]*(1/(orbital_distance[i]*AU)-1/r0) + vesc**2)
+            
+        #drag velocity of particles from solar wind
+        for i in range(1,nbodies):
+            vfdragx[i] = -y[indvx[i]] #drag acts in opposite direction (in planet's reference frame)
+            vfdragy[i] = -y[indvy[i]]
+        #------------------------------------------------------------------------
+        #converting back to Heitsch units (HU):
+        Mcol *= 1/uMass
+        vf *= 1/uVelo
         
-    #radial velocity of particles from solar wind
-    vf = np.zeros((nbodies))
-    vfdragx = np.zeros((nbodies))
-    vfdragy = np.zeros((nbodies))
-    vtotalx = np.zeros((nbodies))
-    vtotaly = np.zeros((nbodies))
-    for i in range (1,nbodies):
-        vf[i] = np.sqrt(2*gnewton1*massesSI[0]*(1/(orbital_distance[i]*AU)-1/r0) + vesc**2)
-        
-    #drag velocity of particles from solar wind
-    for i in range(1,nbodies):
-        vfdragx[i] = -y[indvx[i]] #drag acts in opposite direction (in planet's reference frame)
-        vfdragy[i] = -y[indvy[i]]
-    #------------------------------------------------------------------------
-    #converting back to Heitsch units (HU):
-    Mcol *= 1/uMass
-    vf *= 1/uVelo
+        vfx = np.zeros((nbodies))
+        vfy = np.zeros((nbodies))
+        for i in range(1,nbodies):
+            vfx[i] = vf[i]*y[indx[i]]/(orbital_distance[i])
+            vfy[i] = vf[i]*y[indy[i]]/(orbital_distance[i])
+            vtotalx[i] = vfx[i] + vfdragx[i]
+            vtotaly[i] = vfy[i] + vfdragy[i]
+
+        delpx = Mcol*vtotalx
+        delpy = Mcol*vtotaly
     
-    vfx = np.zeros((nbodies))
-    vfy = np.zeros((nbodies))
-    for i in range(1,nbodies):
-        vfx[i] = vf[i]*y[indx[i]]/(orbital_distance[i])
-        vfy[i] = vf[i]*y[indy[i]]/(orbital_distance[i])
-        vtotalx[i] = vfx[i] + vfdragx[i]
-        vtotaly[i] = vfy[i] + vfdragy[i]
+    if mdrag == 'lit':
+        
+        #set up our mass and velocity in proper units
+        Vsw = 1 
+        mloss = mass_loss(mlf,masses)/uMass
+        Vorb = np.sqrt((y[indvx]*uVelo)**2+(y[indvy]*uVelo)**2)
+        
+    
+        #Escape velocity froms surface of each planet
+        Vescape = np.sqrt(2*gnewton*masses/planet_radius)
+        
+        #the amount of mass coliding with the planet per second
+        Mhit = 0.0000001*((planet_radius**2)*mloss/(4*orbital_distance**2)*
+        (Vsw**2+Vorb**2)/(Vsw**2)*(1+(Vescape**2)/(Vsw**2+Vorb**2)))
+
+        #the total momentum imparted on each planet will be the rate at which mass hits it, times to time step
+        #times the velocity of the stellar wind itself which we are assuming is shot out purely radially
+        delP = Mhit * dx * (Vorb)
+        delpx = delP*(y[indx]/orbital_distance)
+        delpy = delP*(y[indy]/orbital_distance)
+
     
     #Calculating total change in momentum from drag and radial push:
-    delpx = Mcol*vtotalx
-    delpy = Mcol*vtotaly
     px += delpx
     py += delpy
     #=========================================================================
@@ -190,7 +222,7 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     dydx[indvx]= -pHpq[indx]/masses
     dydx[indvy]= -pHpq[indy]/masses
 
-    return dydx
+    return np.isfinite(dydx)
 
 
 #==============================================================
@@ -210,6 +242,18 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
 #   mass    : the sun's remaining mass at time t based on
 #             mass lose equation i
 #--------------------------------------------------------------
+def mass_loss(i,masses):
+    if i == 1:
+        const = 0.566
+    if i == 2:
+        const = 0.459
+    if i == 3:
+        const = 0.424
+
+    mloss = -1/(10**6)*const*masses[0]
+
+    return mloss
+
 def remining_mass(i, t):
     par         = globalvar.get_odepar()
     og_mass     = par[1]

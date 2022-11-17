@@ -404,6 +404,10 @@ def main():
                         help="use symplectic integrator\n")
     parser.add_argument("--mlf",type=int,default=0,
                         help="what mass lose function to use\n")
+    parser.add_argument("mdrag",type=str,default='og',
+                        help="what mass lose function to use\n"
+                            "  og  :  uses original mass drag function"
+                            "  lit :  uses literature's mass drag function")                 
 
 
     args    = parser.parse_args()
@@ -411,7 +415,9 @@ def main():
     planet  = args.planet
     usesymp = args.symp
     global mlf
+    global mdrag
     mlf     = args.mlf  # mass lose equation selection
+    mdrag   = args.mdrag # mass drag equation selection
 
     fINT,fORD,fRHS,fBVP,fJAC,x0,y0,x1,nstep,eps = ode_init(stepper,planet,usesymp)
     x,y,it                                      = fINT(fRHS,fORD,fBVP,x0,y0,x1,nstep,fJAC=fJAC,eps=eps,mlf=mlf,stage=0)
@@ -441,8 +447,8 @@ def main():
 
 #==============================================================
 
-stpyr = 10**3
-total_years = 10**3
+stpyr = 10
+total_years = 10
 interlooper = 0
 main()
 
