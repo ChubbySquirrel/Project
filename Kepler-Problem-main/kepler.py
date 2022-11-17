@@ -60,14 +60,16 @@ def get_planetdata(which):
     return rmass,reps,rrap,rvorb,ryrorb
 
 def get_interdata(which):
-    # halley, moon
+    # halley, moon, sun, Nibiru, nothing
     nplanets             = 1
-    mass                 = np.array([2.2e14, 7.35e22])
-    eps                  = np.array([0, 0])
-    rap                  = np.array([5e13, 5e13])
-    vorb                 = np.array([1e3, 1e3])
-    yrorb                = np.array([1.6373e2, 1.6373e2])
-    radius               = np.array([5.5e3, 1.7347e3])
+    mass                 = np.array([2.2e14, 7.35e22, 1.989e30, 1.31e22*5000, 1e-20])
+    eps                  = np.array([0, 0, 0, 0, 0])
+    # initial setup: 2e13:11au; 3e13:25au; 5e13:75au;
+    # after setup:   2e13:17au; 3e13:40au; 5e13:130au;
+    rap                  = np.array([5e13, 5e13, 5e13, 3e13, 1e20])  # distance
+    vorb                 = np.array([8e2, 8e2, 8e2, 8e2, 1e20])  # initial push
+    yrorb                = np.array([1.6373e2, 1.6373e2, 1.6373e2, 1.6373e2, 1.6373e2])
+    radius               = np.array([5.5e3, 1.7347e3, 6.957e8, 2e6, 1e1])
     rmass                = np.zeros(nplanets)
     reps                 = np.zeros(nplanets)
     rrap                 = np.zeros(nplanets)
@@ -231,9 +233,9 @@ def ode_check(x,y,it):
 
     print("Ode_check running:")
     for k in range(n):
-        if k%((int)(n/100))==0:
+        if k%(int(n/100))==0:
             print("", end="\r")
-            print("Part 1: "+str((int)(k/n*100))+"%", end="")
+            print("Part 1: "+str(int(k/n*100))+"%", end="")
 
         E[k]    = 0.5*np.sum(masses*(np.power(y[indvx,k],2)+np.power(y[indvy,k],2)))
         Lphi[k] = np.sum(masses*(y[indx,k]*y[indvy,k]-y[indy,k]*y[indvx,k]))
@@ -243,6 +245,7 @@ def ode_check(x,y,it):
         vsy     = np.sum(masses*y[indvy,k])/np.sum(masses)
         Rs[k]   = np.sqrt(Rsx*Rsx+Rsy*Rsy)
         vs[k]   = np.sqrt(vsx*vsx+vsy*vsy)
+    print("")
     for j in range(nbodies):
         print("", end="\r")
         print("Part 2: "+str(j)+" out of "+str(nbodies), end="")
@@ -252,6 +255,7 @@ def ode_check(x,y,it):
             dy    = y[indy[j],:]-y[indy[i],:]
             Rt    = np.sqrt(dx*dx+dy*dy)
             Egrav = Egrav - gnewton*masses[i]*masses[j]/Rt
+    print("")
     E       = E + Egrav
     E       = E/E[0]
     Lphi    = Lphi/Lphi[0]
@@ -275,14 +279,17 @@ def ode_check(x,y,it):
     #if (1.05*ymin<-100 or 1.05*ymax>100): ax1.set_ylim(-100,100)
     #else: ax1.set_ylim(1.05*ymin,1.05*ymax)
 
-    ax1.set_xlim(-100, 100)
-    ax1.set_ylim(-100,100)
-
+    up = 10
     for k in range(nbodies):
         print("", end="\r")
         print("Part 3: "+str(k)+" out of "+str(nbodies), end="")
-
         ax1.plot(y[indx[k],:],y[indy[k],:],color=color[k],linewidth=1.0,linestyle='-')
+        up = np.max([up, np.max([y[indx[k],:], y[indy[k],:]])])
+
+    up = np.min([500.0, up])+5
+    ax1.set_xlim([-up, up])
+    ax1.set_ylim([-up, up])
+
     ax1.set_aspect('equal')
     ax1.set_xlabel('x [AU]')
     ax1.set_ylabel('y [AU]')
@@ -308,9 +315,9 @@ def ode_check(x,y,it):
 
         orbital_distance = np.zeros(ss[1])
         for j in range(ss[1]):
-            if j%((int)(ss[1]/100))==0:
+            if j%(int(ss[1]/100))==0:
                 print("", end="\r")
-                print("Progress: "+str((int)(j/ss[1]*100))+"%", end="")
+                print("Progress: "+str(int(j/ss[1]*100))+"%", end="")
 
             orbital_distance[j] = (y[indx[k],j]**2+y[indy[k],j]**2)**0.5
         ax31.plot(x, orbital_distance, linestyle='-',color=color[k],linewidth=1.0)
@@ -436,14 +443,14 @@ def main():
         neY[int(neY.size/2+k)] = y[int(y.size/2+k)]
 
 
-    xI, yI, itI = fINT(fRHS,fORD,fBVP,x0I,neY,x1I,nstepI,fJAC=fJACI,eps=epsI,mlf=mlf,stage=1)
+    xI, yI, itI = fINT(fRHS,fORD,fBVP,x0I,neY,x1I,nstepI,fJAC=fJACI,eps=epsI,mlf=0,stage=1)
     ode_check(xI, yI, itI)
 
 #==============================================================
 
-stpyr = 10**3
-total_years = 10**3
-interlooper = 0
+stpyr = 10**5
+total_years = 10**7
+interlooper = 3
 main()
 
 

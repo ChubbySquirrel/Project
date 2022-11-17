@@ -77,10 +77,13 @@ def keplerdirect_symp1(x,y,dx,**kwargs):
     for key in kwargs:          # mass loss equation selector
         if (key=='mlf'):
             mlf = kwargs[key]
+            continue
         if (key=='t'):
             t = kwargs[key]
+            continue
         if (key=='inter'):
             stage = kwargs[key]
+            continue
     if (mlf!=0): masses[0] = remining_mass(mlf, t)
     #=========================================================================
     
@@ -214,7 +217,7 @@ def remining_mass(i, t):
     par         = globalvar.get_odepar()
     og_mass     = par[1]
     if (i<4): time_scale = 10**6
-    else: time_scale = 6.36*10**9
+    else: time_scale = 6.36*10**9  # this will never work
 
     if (i==1):
         if (t<time_scale):
